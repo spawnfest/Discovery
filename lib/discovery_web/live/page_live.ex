@@ -64,6 +64,15 @@ defmodule DiscoveryWeb.PageLive do
   end
 
   @impl true
+  def handle_event("back", _params, socket) do
+    socket =
+      socket
+      |> assign(selected_app: nil)
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({"app-created", app_details}, socket) do
     %{app_name: app_name} = app_details
 

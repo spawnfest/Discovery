@@ -38,18 +38,32 @@
 </div>
 </section>
 
-<button id="show-create-modal-btn" phx-click="show-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
-  Create
-</button>
 
-<section>
-  <table class="table-fixed">
+<div class="flex flex-row">
+
+  <div>
+    <%= if @selected_app !== nil do %>
+      <div class="flex flex-row">
+        <button type="button" phx-click="back" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Back</button>
+        <button type="button" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Scale</button>
+        <button type="button" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Update</button>
+        <button type="button" class="py-2 px-4 bg-pink-500 text-white font-semibold rounded-lg shadow-md hover:bg-pink-700 focus:outline-none">Delete</button>
+      </div>
+      <div class="flex flex-row">
+        <p class="font-mono text-5xl font-bold"><%= @selected_app %></p>
+      </div>
+  <% end %>
+  <%= if @selected_app === nil do %>
+  <button phx-click="show-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+    Create
+  </button>
+    <table class="table-fixed">
     <thead>
       <tr>
-        <th class="w-1/4 px-4 py-2 text-light-blue-600">Name</th>
-        <th class="w-1/4 px-4 py-2 text-light-blue-600">Replica</th>
-        <th class="w-1/4 px-4 py-2 text-light-blue-600">Size</th>
-        <th class="w-1/4 px-4 py-2 text-light-blue-600">Health</th>
+        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light text-left">Name</th>
+        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Replica</th>
+        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Size</th>
+        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Health</th>
       </tr>
     </thead>
     <tbody>
@@ -59,22 +73,15 @@
         phx-click="select-app"
         phx-value-app="<%= app %>"
         >
-          <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center"><%= app %></td>
-          <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center">1</td>
-          <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center">0.3</td>
-          <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center">healthy</td>
+          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-left"><%= app %></td>
+          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center">1</td>
+          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center">0.3</td>
+          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center">healthy</td>
         </tr>
       <% end %>
     </tbody>
   </table>
-</section>
-
-<section>
-  <%= if @selected_app !== nil do %>
-      <p class="font-mono text-5xl font-bold"><%= @selected_app %></p>
-      <button type="submit" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Back</button>
-      <button type="submit" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Scale</button>
-      <button type="submit" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Update</button>
-      <button type="submit" class="py-2 px-4 bg-pink-500 text-white font-semibold rounded-lg shadow-md hover:bg-pink-700 focus:outline-none">Delete</button>
   <% end %>
-</section>
+  </div>
+
+</div>
