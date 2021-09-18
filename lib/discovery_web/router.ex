@@ -21,9 +21,10 @@ defmodule DiscoveryWeb.Router do
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", DiscoveryWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", DiscoveryWeb do
+    pipe_through :api
+    get "/get-endpoint", EndpointController, :get_endpoint
+  end
 
   # Enables LiveDashboard only for development
   #
