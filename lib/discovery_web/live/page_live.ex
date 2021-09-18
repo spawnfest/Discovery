@@ -1,4 +1,5 @@
 defmodule DiscoveryWeb.PageLive do
+  @moduledoc false
   use DiscoveryWeb, :live_view
 
   @impl true

@@ -1,10 +1,12 @@
 defmodule Discovery.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
       app: :discovery,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
@@ -43,7 +45,9 @@ defmodule Discovery.MixProject do
       {:telemetry_poller, "~> 0.4"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end
 
@@ -55,7 +59,35 @@ defmodule Discovery.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "cmd npm install --prefix assets"]
+      setup: ["deps.get", "cmd npm install --prefix assets"],
+      bump_release: &bump_release/1
     ]
+  end
+
+  @spec bump_release(semver_type :: String.t()) :: any()
+  defp bump_release(semver_type) do
+    semver_type = "#{semver_type}"
+    current_version = Mix.Project.config()[:version]
+
+    [major, minor, patch] =
+      String.split(current_version, ".")
+      |> Enum.map(&String.to_integer/1)
+
+    bumped_version =
+      case semver_type do
+        "major" -> "#{major + 1}.#{0}.#{0}"
+        "minor" -> "#{major}.#{minor + 1}.#{0}"
+        "patch" -> "#{major}.#{minor}.#{patch + 1}"
+        _ -> "#{major}.#{minor}.#{patch}"
+      end
+
+    content =
+      File.read!("mix.exs")
+      |> String.replace("@version \"#{current_version}\"", "@version \"#{bumped_version}\"")
+
+    io_device = File.open!("mix.exs", [:write, :utf8])
+    IO.write(io_device, content)
+    File.close(io_device)
+    IO.puts("Release bumped to #{bumped_version}")
   end
 end
