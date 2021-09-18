@@ -4,30 +4,30 @@ defmodule DiscoveryWeb.PageLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, query: "", results: %{}, apps: [])}
-  end
-
-  @impl true
-  def handle_event("suggest", %{"q" => query}, socket) do
-    {:noreply, assign(socket, results: search(query), query: query)}
-  end
-
-  @impl true
-  def handle_event("search", %{"q" => query}, socket) do
-    case search(query) do
-      %{^query => vsn} ->
-        {:noreply, redirect(socket, external: "https://hexdocs.pm/#{query}/#{vsn}")}
-
-      _ ->
-        {:noreply,
-         socket
-         |> put_flash(:error, "No dependencies found matching \"#{query}\"")
-         |> assign(results: %{}, query: query)}
-    end
+    {:ok, assign(socket, query: "", results: %{}, apps: [], selected_app: nil)}
   end
 
   @impl true
   def handle_event("create-app", %{"app-name" => app_name}, socket) do
+    app_name
+    |> create_app()
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("select-app", %{"app" => app_name} = params, socket) do
+    socket =
+      socket
+      |> assign(selected_app: app_name)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({"app-created", app_details}, socket) do
+    %{app_name: app_name} = app_details
+
     socket =
       socket
       |> assign(apps: [app_name | socket.assigns.apps])
@@ -35,15 +35,8 @@ defmodule DiscoveryWeb.PageLive do
     {:noreply, socket}
   end
 
-  defp search(query) do
-    if not DiscoveryWeb.Endpoint.config(:code_reloader) do
-      raise "action disabled when not in development"
-    end
-
-    for {app, desc, vsn} <- Application.started_applications(),
-        app = to_string(app),
-        String.starts_with?(app, query) and not List.starts_with?(desc, ~c"ERTS"),
-        into: %{},
-        do: {app, vsn}
+  defp create_app(app_name) do
+    # mimics app creation
+    Process.send_after(self(), {"app-created", %{app_name: app_name}}, 2000)
   end
 end
