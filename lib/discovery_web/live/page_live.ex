@@ -31,6 +31,7 @@ defmodule DiscoveryWeb.PageLive do
     socket =
       socket
       |> assign(apps: [app_name | socket.assigns.apps])
+
     {:noreply, socket}
   end
 

@@ -1,28 +1,31 @@
-<section class="phx-hero">
-  <h1><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h1>
-  <p>Peace of mind from prototype to production</p>
-
-  <form phx-change="suggest" phx-submit="search">
-    <input type="text" name="q" value="<%= @query %>" placeholder="Live dependency search" list="results" autocomplete="off"/>
-    <datalist id="results">
-      <%= for {app, _vsn} <- @results do %>
-        <option value="<%= app %>"><%= app %></option>
-      <% end %>
-    </datalist>
-    <button type="submit" phx-disable-with="Searching...">Go to Hexdocs</button>
-  </form>
-</section>
-
 <section class="row">
-  <h1 class="text-indigo-500 text-3xl font-bold ml-9">Hello there I should be indigo!</h1>
   <form phx-submit="create-app">
-    <input type="text" name="app-name" value="<%= @query %>" placeholder="App name">
-    <button type="submit" class="create">Create</button>
+    <input type="text" class="py-2 px-4 bg-white-500 text-black rounded-lg hover:bg-grey-700 border border-black-600" name="app-name" value="<%= @query %>" placeholder="App name">
+    <button type="submit" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Create</button>
   </form>
 </section>
 
 <section>
-  <%= for app <- @apps do %>
-    <li><%= app %></li>
-  <% end %>
+  <div>
+    <table class="table-fixed">
+      <thead>
+        <tr>
+          <th class="w-1/4 px-4 py-2 text-light-blue-600">Name</th>
+          <th class="w-1/4 px-4 py-2 text-light-blue-600">Replica</th>
+          <th class="w-1/4 px-4 py-2 text-light-blue-600">Size</th>
+          <th class="w-1/4 px-4 py-2 text-light-blue-600">Health</th>
+        </tr>
+      </thead>
+      <tbody>
+        <%= for app <- @apps do %>
+          <tr>
+            <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center"><%= app %></td>
+            <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center">1</td>
+            <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center">0.3</td>
+            <td class="border border-light-blue-500 px-4 py-2 text-light-blue-600 font-medium text-center">healthy</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 </section>
