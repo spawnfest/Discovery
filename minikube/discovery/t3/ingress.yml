@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: t3
+  namespace: discovery 
+  annotations:
+    # kubernetes.io/ingress.class: nginx-external
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # nginx.ingress.kubernetes.io/upstream-hash-by: "$hash_id"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - host: t3.minikube.com
+    http:
+      paths:
+      - path: /a(/|$)(.*)
+        backend:
+          serviceName: t3-5b2f7740
+          servicePort: 80
+      # - path: /b(/|$)(.*)
+      #   backend:
+      #     serviceName: t3-5b2f77402
+      #     servicePort: 80

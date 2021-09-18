@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: t3-5b2f7740
+  namespace: games
+  annotations: 
+    app_id: "t3"
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: t3-5b2f7740
+  template:
+    metadata:
+      labels:
+        app: t3-5b2f7740
+    spec:
+      containers:
+      - name: t3
+        image: ghostdsb/t3
+        ports:
+        - containerPort: 4000
+          protocol: TCP
+          name: t3-port
+        resources:
+          requests:
+            memory: 300Mi
+            cpu: 100m
+          limits:
+            memory: 500Mi
+            cpu: 500m
+        envFrom:
+        - configMapRef:
+            name: t3-5b2f7740

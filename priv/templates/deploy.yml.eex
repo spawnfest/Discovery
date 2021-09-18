@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: APP_NAME-UID
+  namespace: games
+  annotations: 
+    app_id: "APP_NAME"
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: APP_NAME-UID
+  template:
+    metadata:
+      labels:
+        app: APP_NAME-UID
+    spec:
+      containers:
+      - name: APP_NAME
+        image: APP_IMAGE
+        ports:
+        - containerPort: 4000
+          protocol: TCP
+          name: APP_NAME-port
+        resources:
+          requests:
+            memory: 300Mi
+            cpu: 100m
+          limits:
+            memory: 500Mi
+            cpu: 500m
+        envFrom:
+        - configMapRef:
+            name: APP_NAME-UID

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: APP_NAME-UID
+  namespace: discovery
+spec:
+  ports:
+  - port: 80
+    targetPort: 4000
+    protocol: TCP
+    name: APP_NAME-service-port
+  selector:
+    app: APP_NAME-UID
