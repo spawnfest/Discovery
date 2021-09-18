@@ -5,6 +5,11 @@ defmodule Discovery.Application do
 
   use Application
 
+  alias Discovery.Engine.Builder
+  alias Discovery.Engine.Utils
+
+  require Logger
+
   def start(_type, _args) do
     children = [
       # Start the Telemetry supervisor
@@ -12,11 +17,13 @@ defmodule Discovery.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: Discovery.PubSub},
       # Start the Endpoint (http/https)
-      DiscoveryWeb.Endpoint
+      DiscoveryWeb.Endpoint,
+      {Builder, []}
       # Start a worker by calling: Discovery.Worker.start_link(arg)
       # {Discovery.Worker, arg}
     ]
 
+    create_metadata_db()
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Discovery.Supervisor]
@@ -28,5 +35,10 @@ defmodule Discovery.Application do
   def config_change(changed, _new, removed) do
     DiscoveryWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp create_metadata_db do
+    :ets.new(Utils.metadata_db(), [:set, :named_table, :public])
+    Logger.info("MetadataDB created \n\n")
   end
 end
