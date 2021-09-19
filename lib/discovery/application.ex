@@ -6,7 +6,8 @@ defmodule Discovery.Application do
   use Application
 
   alias Discovery.Engine.Builder
-  alias Discovery.Engine.Utils
+  alias Discovery.Controller.DeploymentController
+  alias Discovery.Utils
 
   require Logger
 
@@ -18,12 +19,14 @@ defmodule Discovery.Application do
       {Phoenix.PubSub, name: Discovery.PubSub},
       # Start the Endpoint (http/https)
       DiscoveryWeb.Endpoint,
-      {Builder, []}
+      {Builder, []},
+      {DeploymentController, []}
       # Start a worker by calling: Discovery.Worker.start_link(arg)
       # {Discovery.Worker, arg}
     ]
 
     create_metadata_db()
+    create_bridge_db()
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Discovery.Supervisor]
@@ -40,5 +43,10 @@ defmodule Discovery.Application do
   defp create_metadata_db do
     :ets.new(Utils.metadata_db(), [:set, :named_table, :public])
     Logger.info("MetadataDB created \n\n")
+  end
+
+  defp create_bridge_db do
+    :ets.new(Utils.bridge_db(), [:set, :named_table, :public])
+    Logger.info("BridgeDB created \n\n")
   end
 end

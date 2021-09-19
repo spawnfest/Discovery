@@ -1,13 +1,13 @@
-defmodule Discovery.Manager.Deployment do
+defmodule Discovery.Deploy.DeployUtils do
   @moduledoc """
   Deployment manager handles CRUD operations of app deployments
   """
-  alias Discovery.Manager.Deployment
+  alias Discovery.Deploy.DeployUtils
   alias Discovery.Utils
 
   @root_dir "minikube/discovery/"
 
-  @type t :: %Deployment{
+  @type t :: %DeployUtils{
           app_name: String.t(),
           app_image: String.t()
         }
@@ -28,7 +28,7 @@ defmodule Discovery.Manager.Deployment do
 
   Returns :ok | {:error, reason}
   """
-  @spec create(Deployment.t()) :: :ok | {:error, term()}
+  @spec create(DeployUtils.t()) :: :ok | {:error, term()}
   def create(deployment_details) do
     uid = Utils.get_uid()
 
@@ -100,10 +100,10 @@ defmodule Discovery.Manager.Deployment do
   @spec create_dynamic_ingress_path(app()) :: String.t()
   defp create_dynamic_ingress_path(app) do
     """
-    \t\t\t- path: /#{app.uid}(/|$)(.*)
-    \t\t\t\tbackend:
-    \t\t\t\t\tserviceName: #{app.app_name}-#{app.uid}
-    \t\t\t\t\tservicePort: 80
+    \s\s\s- path: /#{app.uid}(/|$)(.*)
+    \s\s\s\sbackend:
+    \s\s\s\s\sserviceName: #{app.app_name}-#{app.uid}
+    \s\s\s\s\sservicePort: 80
     """
   end
 

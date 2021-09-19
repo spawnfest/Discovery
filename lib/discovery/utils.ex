@@ -8,4 +8,20 @@ defmodule Discovery.Utils do
     |> String.split("-")
     |> List.first()
   end
+
+  @doc """
+  Returns the MetadataDB name.
+  """
+  @spec metadata_db() :: atom()
+  def metadata_db do
+    :metadatadb
+  end
+
+  @doc """
+  Returns the BridgeDB name.
+  """
+  @spec bridge_db() :: atom()
+  def bridge_db do
+    :bridgedb
+  end
 end
