@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: APP_NAME
+  name: APP_NAME-UID
   namespace: discovery
 data:
   WATCHEX_PORT: "4000"

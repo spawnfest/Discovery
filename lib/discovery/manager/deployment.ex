@@ -1,118 +1,206 @@
 defmodule Discovery.Manager.Deployment do
-
+  @moduledoc """
+  Deployment manager handles CRUD operations of app deployments
+  """
+  alias Discovery.Manager.Deployment
   alias Discovery.Utils
 
-  def make(deployment_details) do
+  @root_dir "minikube/discovery/"
 
-    %{
-      app_name: app_name,
-      app_image: app_image,
-    } = deployment_details
+  @type t :: %Deployment{
+          app_name: String.t(),
+          app_image: String.t()
+        }
 
+  @type app :: %{
+          app_name: String.t(),
+          app_image: String.t(),
+          uid: String.t()
+        }
+
+  defstruct(
+    app_name: "",
+    app_image: ""
+  )
+
+  @doc """
+  Creates or updates an app deployment
+
+  Returns :ok | {:error, reason}
+  """
+  @spec create(Deployment.t()) :: :ok | {:error, term()}
+  def create(deployment_details) do
     uid = Utils.get_uid()
 
     app_details = %{
-      app_name: app_name,
-      app_image: app_image,
+      app_name: deployment_details.app_name,
+      app_image: deployment_details.app_image,
       uid: uid
     }
 
-    cond do
-      File.dir?("minikube/discovery"<>app_name) ->
-        # update ingress
-        create_ingress(app_details)
-        # create app version folder
-        create_app_version_folder(app_details)
+    case File.dir?(@root_dir <> app_details.app_name) do
       true ->
-        # create main app folder
-        create_app_folder(app_name)
-        # create ingress
-        create_ingress(app_details)
-        # create app version folder
-        create_app_version_folder(app_details)
+        create_ingress(:ok, app_details)
+        |> create_app_version_folder(app_details)
+
+      _ ->
+        create_app_folder(app_details.app_name)
+        |> create_ingress(app_details)
+        |> create_app_version_folder(app_details)
     end
-
-    # config_map =
-    #   File.read!("priv/templates/configmap.yml.eex")
-    #   |> String.replace("APP_NAME", app_name)
-    # config_map_yml = File.open!("test-configmap.yml", [:write, :utf8])
-
-    # deploy =
-    #   File.read!("priv/templates/deploy.yml.eex")
-    #   |> String.replace("APP_NAME", app_name)
-    #   |> String.replace("UID", uid)
-    #   |> String.replace("APP_IMAGE", app_image)
-    # deploy_yml = File.open!("test-deploy.yml", [:write, :utf8])
-
-    # service =
-    #   File.read!("priv/templates/service.yml.eex")
-    #   |> String.replace("APP_NAME", app_name)
-    #   |> String.replace("UID", uid)
-    # service_yml = File.open!("test-service.yml", [:write, :utf8])
-
-    # ingress =
-    #   File.read!("priv/templates/ingress.yml.eex")
-    #   |> String.replace("APP_NAME", app_name)
-    #   |> String.replace("UID", uid)
-    # ingress_yml = File.open!("test-ingress.yml", [:write, :utf8])
-
-    # IO.write(config_map_yml, config_map)
-    # IO.write(deploy_yml, deploy)
-    # IO.write(service_yml, service)
-    # IO.write(ingress_yml, ingress)
-
   end
 
+  @spec create_app_folder(String.t()) :: :ok | {:error, term()}
   defp create_app_folder(app_name) do
     File.mkdir("minikube/discovery/#{app_name}")
   end
 
-  defp create_ingress(app_details) do
-    %{
-      app_name: app_name,
-      uid: uid
-    } = app_details
+  @spec create_ingress(status :: :ok | {:error, term()}, app()) :: :ok | {:error, term()}
+  defp create_ingress(:ok, app) do
+    ingress_file = get_ingress_file_path(app)
 
-    ingress =
-      File.read!("priv/templates/ingress.yml.eex")
-      |> String.replace("APP_NAME", app_name)
-      |> String.replace("UID", uid)
-    ingress_yml = File.open!("minikube/discovery/#{app_name}/ingress.yml", [:write, :utf8])
-    IO.write(ingress_yml, ingress)
-
+    with {:ok, ingress_template} <- File.read(ingress_file),
+         :ok <- write_to_ingress(ingress_template, app),
+         do: :ok
   end
 
-  defp create_app_version_folder(app_details) do
+  defp create_ingress(error, _app), do: error
 
-    %{
-      app_name: app_name,
-      app_image: app_image,
-      uid: uid
-    } = app_details
+  @spec write_to_ingress(binary(), app()) :: :ok | {:error, term()}
+  defp write_to_ingress(ingress_template, app) do
+    ingress_out =
+      String.replace(ingress_template, "APP_NAME", app.app_name)
+      |> String.replace("UID", app.uid)
 
-    File.mkdir("minikube/discovery/#{app_name}/#{app_name}-#{uid}")
+    case File.open("minikube/discovery/#{app.app_name}/ingress.yml", [:write, :utf8]) do
+      {:ok, ingress_io} ->
+        IO.write(ingress_io, ingress_out)
+        File.close(ingress_io)
+        update_ingress_paths(app)
 
-    config_map =
-      File.read!("priv/templates/configmap.yml.eex")
-      |> String.replace("APP_NAME", app_name)
-    config_map_yml = File.open!("minikube/discovery/#{app_name}/#{app_name}-#{uid}/configmap.yml", [:write, :utf8])
-
-    deploy =
-      File.read!("priv/templates/deploy.yml.eex")
-      |> String.replace("APP_NAME", app_name)
-      |> String.replace("UID", uid)
-      |> String.replace("APP_IMAGE", app_image)
-    deploy_yml = File.open!("minikube/discovery/#{app_name}/#{app_name}-#{uid}/deploy.yml", [:write, :utf8])
-
-    service =
-      File.read!("priv/templates/service.yml.eex")
-      |> String.replace("APP_NAME", app_name)
-      |> String.replace("UID", uid)
-    service_yml = File.open!("minikube/discovery/#{app_name}/#{app_name}-#{uid}/service.yml", [:write, :utf8])
-
-    IO.write(config_map_yml, config_map)
-    IO.write(deploy_yml, deploy)
-    IO.write(service_yml, service)
+      error ->
+        error
+    end
   end
 
+  @spec update_ingress_paths(app()) :: :ok | {:error, term()}
+  defp update_ingress_paths(app) do
+    ingress_append_string = create_dynamic_ingress_path(app)
+
+    case File.open("minikube/discovery/#{app.app_name}/ingress.yml", [:write, :utf8, :append]) do
+      {:ok, ingress_io} ->
+        IO.write(ingress_io, ingress_append_string)
+        File.close(ingress_io)
+
+      error ->
+        error
+    end
+  end
+
+  @spec create_dynamic_ingress_path(app()) :: String.t()
+  defp create_dynamic_ingress_path(app) do
+    """
+    \t\t\t- path: /#{app.uid}(/|$)(.*)
+    \t\t\t\tbackend:
+    \t\t\t\t\tserviceName: #{app.app_name}-#{app.uid}
+    \t\t\t\t\tservicePort: 80
+    """
+  end
+
+  @spec get_ingress_file_path(app()) :: String.t()
+  defp get_ingress_file_path(app) do
+    case File.exists?("minikube/discovery/#{app.app_name}/ingress.yml") do
+      true -> "minikube/discovery/#{app.app_name}/ingress.yml"
+      _ -> "priv/templates/ingress.yml.eex"
+    end
+  end
+
+  @spec create_app_version_folder(status :: :ok | {:error, term()}, app()) ::
+          :ok | {:error, term()}
+  defp create_app_version_folder(:ok, app) do
+    with :ok <- File.mkdir("minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}"),
+         :ok <- create_configmap(app),
+         :ok <- create_deploy_yml(app),
+         :ok <- create_service(app),
+         do: :ok
+  end
+
+  @spec create_configmap(app()) :: :ok | {:error, term()}
+  defp create_configmap(app) do
+    with {:ok, config_template} <- File.read("priv/templates/configmap.yml.eex"),
+         :ok <- write_to_configmap(config_template, app),
+         do: :ok
+  end
+
+  @spec write_to_configmap(String.t(), app()) :: :ok | {:error, term()}
+  defp write_to_configmap(config_template, app) do
+    configmap_out =
+      String.replace(config_template, "APP_NAME", app.app_name)
+      |> String.replace("UID", app.uid)
+
+    case File.open(
+           "minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}/configmap.yml",
+           [:write, :utf8]
+         ) do
+      {:ok, configmap_io} ->
+        IO.write(configmap_io, configmap_out)
+        File.close(configmap_io)
+
+      error ->
+        error
+    end
+  end
+
+  @spec create_deploy_yml(app()) :: :ok | {:error, term()}
+  defp create_deploy_yml(app) do
+    with {:ok, deploy_template} <- File.read("priv/templates/deploy.yml.eex"),
+         :ok <- write_to_deploy_yml(deploy_template, app),
+         do: :ok
+  end
+
+  @spec write_to_deploy_yml(String.t(), app()) :: :ok | {:error, term()}
+  defp write_to_deploy_yml(deploy_template, app) do
+    deploy_out =
+      String.replace(deploy_template, "APP_NAME", app.app_name)
+      |> String.replace("UID", app.uid)
+      |> String.replace("APP_IMAGE", app.app_image)
+
+    case File.open("minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}/deploy.yml", [
+           :write,
+           :utf8
+         ]) do
+      {:ok, deploy_io} ->
+        IO.write(deploy_io, deploy_out)
+        File.close(deploy_io)
+
+      error ->
+        error
+    end
+  end
+
+  @spec create_service(app()) :: :ok | {:error, term()}
+  defp create_service(app) do
+    with {:ok, service_template} <- File.read("priv/templates/service.yml.eex"),
+         :ok <- write_to_service(service_template, app),
+         do: :ok
+  end
+
+  @spec write_to_service(String.t(), app()) :: :ok | {:error, term()}
+  defp write_to_service(service_template, app) do
+    service_out =
+      String.replace(service_template, "APP_NAME", app.app_name)
+      |> String.replace("UID", app.uid)
+
+    case File.open("minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}/service.yml", [
+           :write,
+           :utf8
+         ]) do
+      {:ok, service_io} ->
+        IO.write(service_io, service_out)
+        File.close(service_io)
+
+      error ->
+        error
+    end
+  end
 end

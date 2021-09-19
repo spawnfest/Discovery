@@ -4,20 +4,10 @@ metadata:
   name: APP_NAME
   namespace: discovery 
   annotations:
-    # kubernetes.io/ingress.class: nginx-external
-    # nginx.ingress.kubernetes.io/rewrite-target: /$2
-    # nginx.ingress.kubernetes.io/upstream-hash-by: "$hash_id"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$uid"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
   - host: APP_NAME.minikube.com
     http:
       paths:
-      - path: /a(/|$)(.*)
-        backend:
-          serviceName: APP_NAME-UID
-          servicePort: 80
-      # - path: /b(/|$)(.*)
-      #   backend:
-      #     serviceName: APP_NAME-UID2
-      #     servicePort: 80

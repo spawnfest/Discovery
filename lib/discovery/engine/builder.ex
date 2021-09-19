@@ -101,7 +101,7 @@ defmodule Discovery.Engine.Builder do
 
   defp update_metadata_db([deployment | t], state) do
     app_id = deployment["metadata"]["annotations"]["app_id"]
-    Logger.info("APP_ID: #{app_id}")
+    # Logger.info("APP_ID: #{app_id}")
 
     update_app_metadata(app_id, deployment, state)
     |> then(&update_metadata_db(t, &1))
@@ -132,7 +132,7 @@ defmodule Discovery.Engine.Builder do
 
     :ets.insert(Utils.metadata_db(), {app_id, app_info})
     state = put_in(state.deployment_info[app_id], app_info)
-    Logger.info(inspect(state.deployment_info))
+    # Logger.info(inspect(state.deployment_info))
     state
   end
 
