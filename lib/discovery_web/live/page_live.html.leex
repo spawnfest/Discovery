@@ -88,41 +88,49 @@
 
   <div>
     <%= if @selected_app !== nil do %>
-      <div class="flex flex-row">
+      <div class="flex flex-row space-x-6">
         <button type="button" phx-click="back" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Back</button>
         <button type="button" phx-click="show-deploy-modal" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Deploy</button>
         <button type="button" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Scale</button>
-        <button type="button" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">Update</button>
         <button type="button" class="py-2 px-4 bg-pink-500 text-white font-semibold rounded-lg shadow-md hover:bg-pink-700 focus:outline-none">Delete</button>
       </div>
-      <div class="flex flex-col">
-        <div class="flex flex-row">
-          <div class="flex font-mono text-sm font-light text-center border border-gray-500 w-1/2 justify-center items-center">App name</div>
-          <div class="flex font-mono text-2xl font-light text-center border border-gray-500 w-1/2 justify-center items-center"><%= @selected_app %></div>
+      <div class="flex flex-row space-x-6">
+        <div class="flex flex-col border border-gray-200 px-4 py-2 my-4">
+          <div class="flex font-mono text-base font-light text-left items-center">App name</div>
+          <div class="flex font-mono text-sm font-light text-left items-center"><%= @selected_app %></div>
         </div>
-        <div class="flex flex-row">
-          <div class="flex font-mono text-sm font-light text-center border border-gray-500 w-1/2 justify-center items-center">Deployments</div>
-          <div class="flex font-mono text-2xl font-light text-center border border-gray-500 w-1/2 justify-center items-center"><%= @selected_app_details |> Enum.count %></div>
+        <div class="flex flex-col border border-gray-200 px-4 py-2 my-4">
+          <div class="flex font-mono text-base font-light text-left items-center">Deployments</div>
+          <div class="flex font-mono text-sm font-light text-left items-center"><%= @selected_app_details |> Enum.count %></div>
+        </div>
+        <div class="flex flex-col border border-gray-200 px-4 py-2 my-4">
+          <div class="flex font-mono text-base font-light text-left items-center">Current URL</div>
+          <div class="flex font-mono text-sm font-light text-left items-center"><%=
+          case @selected_app_details |> List.first do
+            nil -> "--no deployments yet--"
+            deployment_data -> deployment_data |> Map.get("url", "")
+          end
+          %></div>
         </div>
       </div>
 
       <div class="flex flex-row">
-        <table class="table-fixed">
-          <thead>
+        <table class="table-fixed border-collapse w-full border-2 border-indigo-800">
+          <thead class="bg-blue-100">
             <tr>
-              <th class="w-1/4 px-4 py-2 font-mono text-sm font-light text-left">Name</th>
-              <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Last Updated</th>
-              <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Url</th>
-              <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Action</th>
+              <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-left">Name</th>
+              <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-center">Last Updated</th>
+              <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-center">Url</th>
+              <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             <%= for deployment <- @selected_app_details do %>
               <tr>
-                <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-left"><%= deployment["name"] %></td>
-                <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center"><%= deployment["last_updated"] %></td>
-                <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center"><%= deployment["url"] %></td>
-                <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center">delete</td>
+                <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-emerald-400 text-left"><%= deployment["name"] %></td>
+                <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-emerald-400 text-center"><%= deployment["last_updated"] %></td>
+                <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-emerald-400 text-center"><%= deployment["url"] %></td>
+                <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-emerald-400 text-center">delete</td>
               </tr>
             <% end %>
           </tbody>
@@ -131,16 +139,19 @@
 
   <% end %>
   <%= if @selected_app === nil do %>
-  <button phx-click="show-create-modal" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
-    Create
-  </button>
-    <table class="table-fixed">
-    <thead>
+  <div class="flex flex-row">
+    <button phx-click="show-create-modal" type="button" class="py-2 px-4 bg-indigo-500 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none">
+      Create
+    </button>
+  </div>
+  <div class="flex flex-row py-4">
+    <table class="table-fixed border-collapse w-full border-2 border-indigo-800">
+    <thead class="bg-blue-100">
       <tr>
-        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light text-left">Name</th>
-        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Replica</th>
-        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Size</th>
-        <th class="w-1/4 px-4 py-2 font-mono text-sm font-light">Health</th>
+        <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-left">Name</th>
+        <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-center">Replica</th>
+        <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-center">Size</th>
+        <th class="border-2 border-emerald-600 px-4 py-2 text-emerald-800 text-left font-mono text-center">Status</th>
       </tr>
     </thead>
     <tbody>
@@ -150,14 +161,15 @@
         phx-click="select-app"
         phx-value-app="<%= app %>"
         >
-          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-left"><%= app %></td>
-          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center">1</td>
-          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center">0.3</td>
-          <td class="border border-light-blue-500 px-4 py-2 font-mono text-sm font-light text-center">healthy</td>
+          <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-emerald-400 text-left"><%= app %></td>
+          <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-emerald-400 text-center">1</td>
+          <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-emerald-400 text-center">0.3</td>
+          <td class="border-2 border-emerald-600 px-4 py-2 font-mono text-green-600 text-center">healthy</td>
         </tr>
       <% end %>
     </tbody>
   </table>
+  </div>
   <% end %>
   </div>
 
