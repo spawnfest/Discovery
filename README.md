@@ -149,3 +149,4 @@ The dashboard/platform is called Bridge
 ## Credits
 
 <div>Discovery logo made by <a href="" title="Nhor Phai">Nhor Phai</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+
