@@ -10,8 +10,15 @@
     <script defer phx-track-static type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </head>
   <body>
-    <header>
-      <p class="font-mono text-5xl font-bold">Discovery</p>
+    <header >
+      <div class="flex flex-row">
+        <div class="flex px-8">
+          <img src="<%= Routes.static_path(@conn, "/images/discovery.png") %>" alt="..." class=" m-auto h-20 w-20 rounded max-w-full h-auto align-middle border-none" />
+        </div>
+        <div >
+          <p class="font-mono text-5xl font-bold p-8 text-indigo-900">Discovery</p>
+        </div>
+      </div>
     </header>
     <%= @inner_content %>
   </body>

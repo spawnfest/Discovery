@@ -119,6 +119,8 @@ defmodule Discovery.Engine.Builder do
   @spec update_app_metadata(String.t(), map(), __MODULE__.t()) :: __MODULE__.t()
   defp update_app_metadata(app_id, app_k8_data, state) do
     app_deployment_name = app_k8_data["metadata"]["name"]
+    [container | _t] = app_k8_data["spec"]["template"]["spec"]["containers"]
+    replicas = app_k8_data["status"]["replicas"]
 
     app_info =
       Map.get(state.deployment_info, app_id, %{})
@@ -126,7 +128,9 @@ defmodule Discovery.Engine.Builder do
         app_deployment_name,
         %{
           "last_updated" => get_last_updated_time(app_k8_data["status"]),
-          "url" => get_deployment_url(app_deployment_name, state.conn_ref)
+          "url" => get_deployment_url(app_deployment_name, state.conn_ref),
+          "image" => container["image"],
+          "replicas" => replicas
         }
       )
 

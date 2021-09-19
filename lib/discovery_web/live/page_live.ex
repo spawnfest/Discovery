@@ -1,8 +1,7 @@
 defmodule DiscoveryWeb.PageLive do
   @moduledoc false
   use DiscoveryWeb, :live_view
-  alias Discovery.Controller.DeploymentController
-  alias Discovery.Deploy.DeployManager
+  alias Discovery.Bridge.BridgeUtils
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -14,6 +13,7 @@ defmodule DiscoveryWeb.PageLive do
        create_modal_display: "none",
        deploy_modal_display: "none",
        create_app_warning: "none",
+       deploy_app_warning: "none",
        modal_input?: true,
        selected_app_details: %{}
      )}
@@ -21,23 +21,19 @@ defmodule DiscoveryWeb.PageLive do
 
   @impl true
   def handle_event("create-app", %{"app-name" => app_name} = _params, socket) do
-    # if socket.assigns.modal_input? do
-    #   app_name
-    #   |> create_app()
-    # end
-
-    # socket =
-    #   socket
-    #   |> assign(modal_input?: false)
-
     socket =
       if socket.assigns.modal_input? do
         case app_name |> create_app() do
-          {:ok, app_name} ->
+          {:ok, :app_inserted} ->
+            new_app = %{
+              app_name: app_name,
+              deployments: 0
+            }
+
             socket
             |> assign(
               modal_input?: false,
-              apps: [app_name | socket.assigns.apps],
+              apps: [new_app | socket.assigns.apps],
               create_modal_display: "none"
             )
 
@@ -70,14 +66,9 @@ defmodule DiscoveryWeb.PageLive do
 
   @impl true
   def handle_event("select-app", %{"app" => app_name} = _params, socket) do
-    # %{
-    #   "t3-2d5aea38" => %{"last_updated" => ~U[2021-09-19 08:27:58Z], "url" => ""},
-    #   "t3-35aaaa48" => %{"last_updated" => ~U[2021-09-19 08:55:58Z], "url" => ""}
-    # }
-
     selected_app_details =
-      DeploymentController.get_deployment_data(app_name)
-      |> Enum.map(fn {name, value} -> Map.put(value, "name", name) end)
+      app_name
+      |> BridgeUtils.get_deployment_data()
 
     socket =
       socket
@@ -122,7 +113,12 @@ defmodule DiscoveryWeb.PageLive do
   def handle_event("hide-modal", _params, socket) do
     socket =
       socket
-      |> assign(create_modal_display: "none", deploy_modal_display: "none", modal_input?: true)
+      |> assign(
+        create_modal_display: "none",
+        deploy_modal_display: "none",
+        deploy_app_warning: "none",
+        modal_input?: true
+      )
 
     {:noreply, socket}
   end
@@ -136,61 +132,49 @@ defmodule DiscoveryWeb.PageLive do
     {:noreply, socket}
   end
 
-  # @impl true
-  # def handle_info({"app-created", app_details}, socket) do
-  #   %{app_name: app_name} = app_details
-
-  #   socket =
-  #     socket
-  #     |> assign(apps: [app_name | socket.assigns.apps], create_modal_display: "none")
-
-  #   {:noreply, socket}
-  # end
-
   @impl true
-  def handle_info({"deployment-created", deployment_details}, socket) do
-    %{
-      app_name: _app_name,
-      app_image: _app_image
-    } = deployment_details
-
+  def handle_info(
+        {"deployment-created", %{status: deployment_status, app_name: app_name}},
+        socket
+      ) do
     socket =
-      socket
-      |> assign(deploy_modal_display: "none")
+      case deployment_status do
+        {:ok, _app_id} ->
+          selected_app_details =
+            app_name
+            |> BridgeUtils.get_deployment_data()
+
+          assign(
+            socket,
+            deploy_modal_display: "none",
+            deploy_app_warning: "none",
+            selected_app_details: selected_app_details,
+            apps: get_apps()
+          )
+
+        {:error, _reason} ->
+          socket |> assign(deploy_app_warning: "block")
+      end
 
     {:noreply, socket}
   end
 
+  ## HELPER FUNCTIONS ##
   defp get_apps do
-    # # sample app names
-    # [
-    #   "t3",
-    #   "watchex",
-    #   "nightwatch",
-    #   "wsgo"
-    # ]
-
-    DeploymentController.get_apps()
+    BridgeUtils.get_apps()
   end
 
   defp create_app(app_name) do
-    case DeploymentController.insert_app(app_name) do
-      {:ok, :app_inserted} ->
-        {:ok, app_name}
-
-      {:error, :app_present} ->
-        {:error, :app_present}
-    end
+    app_name
+    |> BridgeUtils.create_app()
   end
 
-  defp create_deployment(deployment_details) do
-    %{app_name: app_name, app_image: app_image} = deployment_details
-
-    DeployManager.create(deployment_details)
+  defp create_deployment(%{app_name: app_name} = deployment_details) do
+    deployment_status = BridgeUtils.create_deployment(deployment_details)
 
     Process.send_after(
       self(),
-      {"deployment-created", %{app_name: app_name, app_image: app_image}},
+      {"deployment-created", %{status: deployment_status, app_name: app_name}},
       2000
     )
   end
