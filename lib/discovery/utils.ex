@@ -24,4 +24,19 @@ defmodule Discovery.Utils do
   def bridge_db do
     :bridgedb
   end
+
+  @spec puts_success(any) :: :ok
+  def puts_success(term) do
+    IO.puts(IO.ANSI.format([:green_background, :black, inspect(term)]))
+  end
+
+  @spec puts_warn(any) :: :ok
+  def puts_warn(term) do
+    IO.puts(IO.ANSI.format([:yellow_background, :black, inspect(term)]))
+  end
+
+  @spec puts_error(any) :: :ok
+  def puts_error(term) do
+    IO.puts(IO.ANSI.format([:red_background, :black, inspect(term)]))
+  end
 end

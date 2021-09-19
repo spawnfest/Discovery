@@ -5,6 +5,7 @@ defmodule Discovery.Application do
 
   use Application
 
+  alias Discovery.Deploy.DeployManager
   alias Discovery.Engine.Builder
   alias Discovery.Controller.DeploymentController
   alias Discovery.Utils
@@ -20,7 +21,8 @@ defmodule Discovery.Application do
       # Start the Endpoint (http/https)
       DiscoveryWeb.Endpoint,
       {Builder, []},
-      {DeploymentController, []}
+      {DeploymentController, []},
+      {DeployManager, []},
       # Start a worker by calling: Discovery.Worker.start_link(arg)
       # {Discovery.Worker, arg}
     ]

@@ -187,7 +187,7 @@ defmodule DiscoveryWeb.PageLive do
   defp create_deployment(deployment_details) do
     %{app_name: app_name, app_image: app_image} = deployment_details
 
-    Discovery.Deploy.DeployUtils.create(deployment_details)
+    Discovery.Deploy.DeployManager.create(deployment_details)
 
     Process.send_after(self(), {"deployment-created", %{app_name: app_name, app_image: app_image}}, 2000)
   end

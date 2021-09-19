@@ -1,6 +1,6 @@
 defmodule Discovery.Deploy.DeployUtils do
   @moduledoc """
-  Deployment manager handles CRUD operations of app deployments
+  Includes handles all the utilities for CRUD operations of app deployments
   """
   alias Discovery.Deploy.DeployUtils
   alias Discovery.Utils
@@ -28,7 +28,7 @@ defmodule Discovery.Deploy.DeployUtils do
 
   Returns :ok | {:error, reason}
   """
-  @spec create(DeployUtils.t()) :: :ok | {:error, term()}
+  @spec create(DeployUtils.t()) :: {:ok, term()} | {:error, term()}
   def create(deployment_details) do
     uid = Utils.get_uid()
 
@@ -47,6 +47,18 @@ defmodule Discovery.Deploy.DeployUtils do
         create_app_folder(app_details.app_name)
         |> create_ingress(app_details)
         |> create_app_version_folder(app_details)
+    end
+  end
+
+  def create_namespace_directory do
+    if File.exists?("minikube/discovery/namespace.yml") do
+      Utils.puts_warn("NAMESPACE DIRECTORY EXISTS")
+    else
+      File.mkdir_p!(Path.dirname("minikube/discovery/namespace.yml")) |> IO.inspect(label: "creating namespace")
+      namespace_template = File.read!("priv/templates/namespace.yml.eex")
+      File.write!("minikube/discovery/namespace.yml", namespace_template)
+      Utils.puts_warn("RUNNING NAMESPACE: discovery")
+      run_resource(["apply", "-f", File.cwd!() <> "/minikube/discovery/namespace.yml"])
     end
   end
 
@@ -77,6 +89,13 @@ defmodule Discovery.Deploy.DeployUtils do
         IO.write(ingress_io, ingress_out)
         File.close(ingress_io)
         update_ingress_paths(app)
+        Utils.puts_warn("RUNNING INGRESS: #{app.app_name}")
+
+        run_resource([
+          "apply",
+          "-f",
+          File.cwd!() <> "/minikube/discovery/#{app.app_name}/ingress.yml"
+        ])
 
       error ->
         error
@@ -100,10 +119,10 @@ defmodule Discovery.Deploy.DeployUtils do
   @spec create_dynamic_ingress_path(app()) :: String.t()
   defp create_dynamic_ingress_path(app) do
     """
-    \s\s\s- path: /#{app.uid}(/|$)(.*)
-    \s\s\s\sbackend:
-    \s\s\s\s\sserviceName: #{app.app_name}-#{app.uid}
-    \s\s\s\s\sservicePort: 80
+    \s\s\s\s\s\s-\spath: /#{app.uid}(/|$)(.*)
+    \s\s\s\s\s\s\s\sbackend:
+    \s\s\s\s\s\s\s\s\sserviceName: #{app.app_name}-#{app.uid}
+    \s\s\s\s\s\s\s\s\sservicePort: 80\r
     """
   end
 
@@ -115,15 +134,20 @@ defmodule Discovery.Deploy.DeployUtils do
     end
   end
 
-  @spec create_app_version_folder(status :: :ok | {:error, term()}, app()) ::
+  @spec create_app_version_folder(status :: {:ok, term()} | {:error, term()}, app()) ::
           :ok | {:error, term()}
   defp create_app_version_folder(:ok, app) do
+    Utils.puts_warn("Creating APP DEPLOYMENT DIRECTORY: #{app.app_name}-#{app.uid}")
+
     with :ok <- File.mkdir("minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}"),
          :ok <- create_configmap(app),
          :ok <- create_deploy_yml(app),
-         :ok <- create_service(app),
-         do: :ok
+         :ok <- create_service(app) do
+      {:ok, "#{app.app_name}-#{app.uid}"}
+    end
   end
+
+  defp create_app_version_folder(error, _app), do: error
 
   @spec create_configmap(app()) :: :ok | {:error, term()}
   defp create_configmap(app) do
@@ -145,6 +169,14 @@ defmodule Discovery.Deploy.DeployUtils do
       {:ok, configmap_io} ->
         IO.write(configmap_io, configmap_out)
         File.close(configmap_io)
+        Utils.puts_warn("RUNNING CONFIGMAP: #{app.app_name}-#{app.uid}")
+
+        run_resource([
+          "apply",
+          "-f",
+          File.cwd!() <>
+            "/minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}/configmap.yml"
+        ])
 
       error ->
         error
@@ -172,6 +204,14 @@ defmodule Discovery.Deploy.DeployUtils do
       {:ok, deploy_io} ->
         IO.write(deploy_io, deploy_out)
         File.close(deploy_io)
+        Utils.puts_warn("RUNNING DEPLOYMENT: #{app.app_name}-#{app.uid}")
+
+        run_resource([
+          "apply",
+          "-f",
+          File.cwd!() <>
+            "/minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}/deploy.yml"
+        ])
 
       error ->
         error
@@ -198,9 +238,33 @@ defmodule Discovery.Deploy.DeployUtils do
       {:ok, service_io} ->
         IO.write(service_io, service_out)
         File.close(service_io)
+        Utils.puts_warn("RUNNING SERVICE: #{app.app_name}-#{app.uid}")
+
+        run_resource([
+          "apply",
+          "-f",
+          File.cwd!() <>
+            "/minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}/service.yml"
+        ])
 
       error ->
         error
+    end
+  end
+
+  @spec run_resource(list()) :: :ok | {:error, term()}
+  defp run_resource(command) do
+    case System.cmd("kubectl", command) do
+      {output, 0} ->
+        Utils.puts_success(output)
+
+      {error, 1} ->
+        Utils.puts_error(error)
+        {:error, error}
+
+      _ ->
+        Utils.puts_error("Unknown error")
+        {:error, "Unknown error"}
     end
   end
 end

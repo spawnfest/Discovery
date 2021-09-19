@@ -22,3 +22,11 @@ alias Discovery.Engine.Builder
 
 Process.exit(bid, :kill)
 ```
+
+alias Discovery.Deploy.DeployUtils
+depl = %DeployUtils{app_name: "watchex", app_image: "watchex:0.1.4_dev"}
+
+%Discovery.Deploy.DeployUtils{
+  app_image: "madclaws/watchex:0.1.4_dev",
+  app_name: "watchex"
+} 
