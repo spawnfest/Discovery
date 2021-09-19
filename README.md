@@ -116,7 +116,7 @@ Added advantages of building over Kubernetes,
 
 ### Using dashboard
 
-The dashboard/platform is called Bridge
+The dashboard is called **Bridge**
 
 [Bridge url](`http://localhost:4000`)
 
@@ -127,11 +127,30 @@ The dashboard/platform is called Bridge
 - Each app will be having an dedicated url to Discovery.
 - Clients use this dedicated endpoint url to get the app's endpoint. (As specified in `Approach` section).
 
+![create-app](doc_assets/create-app.gif?raw=true  "scale app")
+
 #### Deploying and managing an app
 
 - When deploying an app, we have to specify the docker image name (which should be public as of now).
 - Bridge shows each app's deployment logs/activites.
 - Deployment CRUD operations to app are available as button clicks.
+
+![scale-app](doc_assets/scale-app.gif?raw=true  "create app")
+
+#### Fetching latest server URL from Discovery 
+
+- Client will hit Discovery API, and get the latest server endpoint url.
+
+    ```
+    GET - http://localhost:4000/api/get-endpoint?app_name=nightwatch
+    
+    RESPONSE - 
+    {
+      "endpoint": "nightwatch.minikube.com/9d00cc18"
+    }
+
+    ```
+
 
 ## Demo time
 
