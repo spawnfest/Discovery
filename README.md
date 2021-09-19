@@ -1,3 +1,3 @@
 # Discovery
 
-**Deploy real-time stateful servers in Kubernetes (like we do the stateless :artificial_satellite:)**
+**Platform for hosting realtime, stateful servers with zero downtime and horizontal scaling on Kubernetes*
