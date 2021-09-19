@@ -138,8 +138,48 @@ The dashboard/platform is called Bridge
 ### Things to note
 - For demo, we will be using a bare MMO game [client](https://github.com/madclaws/watchers), [server](https://github.com/madclaws/watchex).
 - Disclaimer: These projects were not made for spawnfest, we will be just integrating Discovery to these.
- 
 
+### Demo explanation 
+
+#### What is the gameplay?
+
+- Players can traverse the world in four directions.
+- They can attack others by clicking `attack` button
+- If in any other player is in the radius of 1 grid in any direction, then he/she will die.
+- Player respawns after 5s, when he/she dies.
+
+**We recorded a gameplay to demo the discovery's Zero downtime deployment feature. Demo will be explained by timestamp.**
+
+[Discovery demo video](https://drive.google.com/file/d/19xI5wqmnNBNfRr-_9ruqxugOmKouMeq1/view?usp=sharing)
+
+- [00 - 0:15] - Created a new app `watchex` (A phoenix server using websockets)
+
+- [0:16 - 1:56] - Deployed `watchex` with `madclaws/watchex:0.1.5`
+    - `madclaws/watchex:0.1.5` build has normal gameplay, as we mentioned before.
+    -  Players attacks, dies and respawns.
+    - Also both clients are in normal chrome tabs.
+
+- [1:57 - 3:32] - Made a new deployment with `madclaws/watchex:0.1.6`
+    - `0.1.6` was our upgrade to the server, that removes the **RESPAWN** feature from the game.
+    - Opens 2 new clients in incognito tabs.
+    - Players attacks, dies, but they are not respawned. As expected
+
+- [3:33 - 4:12] - Revisits our old clients, which were running in normal chrome tabs
+    - But here clients can still respawn, ie they are still connected to old server/build.
+
+- [4:13 - end] -  Reloads old clients (normal chrome tabs).
+    - Now when they die, they are not respawned.
+    - ie they are connected to the latest deployment.
+
+**Summary: A new upgrade to the system, will not shut the old deployments and will not affect the existing clients. MISSION ACCOMPLISHED**
+
+### Discovery integration / changes for the demo
+
+[server respawn code in 0.1.5 build](https://github.com/madclaws/watchex/blob/4e77bb17a25ac4bf869a5ee570a726981af00f60/lib/watchex/gameplay/entities/player.ex#L160)
+
+[removed respawn code in 0.1.6 build](https://github.com/madclaws/watchex/blob/5a408976d57026cb652fd867057a7d8aa13ba9b8/lib/watchex/gameplay/entities/player.ex#L160)
+
+[Client hitting Discovery for latest server endpoint](https://github.com/madclaws/watchers/blob/12adc573e1bf570fb592b6200bc5126628ee5d08/src/Classes/NetworkManager.ts#L90)
 
 
 ## Roadmap
