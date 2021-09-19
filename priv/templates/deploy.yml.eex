@@ -6,7 +6,7 @@ metadata:
   annotations: 
     app_id: "APP_NAME"
 spec:
-  replicas: 1
+  replicas: APP_REPLICA
   strategy:
     type: RollingUpdate
     rollingUpdate:

@@ -63,4 +63,16 @@ defmodule Discovery.Bridge.BridgeUtils do
     deployment_details
     |> DeployManager.create()
   end
+
+  @doc """
+  Get latest deployment details of an app
+
+  Returns {:ok, term} | {:error, reason}
+  """
+  @spec get_latest_deployment(String.t()) :: map()
+  def get_latest_deployment(app_name) do
+    app_name
+    |> get_deployment_data()
+    |> List.first()
+  end
 end
