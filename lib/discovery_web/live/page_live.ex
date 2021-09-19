@@ -1,7 +1,8 @@
 defmodule DiscoveryWeb.PageLive do
   @moduledoc false
   use DiscoveryWeb, :live_view
-
+  alias Discovery.Controller.DeploymentController
+  alias Discovery.Deploy.DeployManager
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -33,17 +34,19 @@ defmodule DiscoveryWeb.PageLive do
       if socket.assigns.modal_input? do
         case app_name |> create_app() do
           {:ok, app_name} ->
-            socket |> assign(
+            socket
+            |> assign(
               modal_input?: false,
               apps: [app_name | socket.assigns.apps],
-              create_modal_display: "none")
+              create_modal_display: "none"
+            )
+
           {:error, :app_present} ->
             socket |> assign(create_app_warning: "block")
         end
       else
         socket
       end
-
 
     {:noreply, socket}
   end
@@ -67,23 +70,18 @@ defmodule DiscoveryWeb.PageLive do
 
   @impl true
   def handle_event("select-app", %{"app" => app_name} = _params, socket) do
-
     # %{
     #   "t3-2d5aea38" => %{"last_updated" => ~U[2021-09-19 08:27:58Z], "url" => ""},
     #   "t3-35aaaa48" => %{"last_updated" => ~U[2021-09-19 08:55:58Z], "url" => ""}
     # }
 
     selected_app_details =
-      Discovery.Controller.DeploymentController.get_deployment_data(app_name)
+      DeploymentController.get_deployment_data(app_name)
       |> Enum.map(fn {name, value} -> Map.put(value, "name", name) end)
-      |>IO.inspect()
 
-
-
-      socket =
+    socket =
       socket
       |> assign(selected_app: app_name, selected_app_details: selected_app_details)
-
 
     {:noreply, socket}
   end
@@ -124,7 +122,7 @@ defmodule DiscoveryWeb.PageLive do
   def handle_event("hide-modal", _params, socket) do
     socket =
       socket
-      |> assign(create_modal_display: "none", deploy_modal_display: "none",  modal_input?: true)
+      |> assign(create_modal_display: "none", deploy_modal_display: "none", modal_input?: true)
 
     {:noreply, socket}
   end
@@ -153,8 +151,8 @@ defmodule DiscoveryWeb.PageLive do
   def handle_info({"deployment-created", deployment_details}, socket) do
     %{
       app_name: _app_name,
-      app_image: _app_image,
-      } = deployment_details
+      app_image: _app_image
+    } = deployment_details
 
     socket =
       socket
@@ -172,13 +170,14 @@ defmodule DiscoveryWeb.PageLive do
     #   "wsgo"
     # ]
 
-    Discovery.Controller.DeploymentController.get_apps()
+    DeploymentController.get_apps()
   end
 
   defp create_app(app_name) do
-    case Discovery.Controller.DeploymentController.insert_app(app_name) do
+    case DeploymentController.insert_app(app_name) do
       {:ok, :app_inserted} ->
         {:ok, app_name}
+
       {:error, :app_present} ->
         {:error, :app_present}
     end
@@ -187,8 +186,12 @@ defmodule DiscoveryWeb.PageLive do
   defp create_deployment(deployment_details) do
     %{app_name: app_name, app_image: app_image} = deployment_details
 
-    Discovery.Deploy.DeployManager.create(deployment_details)
+    DeployManager.create(deployment_details)
 
-    Process.send_after(self(), {"deployment-created", %{app_name: app_name, app_image: app_image}}, 2000)
+    Process.send_after(
+      self(),
+      {"deployment-created", %{app_name: app_name, app_image: app_image}},
+      2000
+    )
   end
 end

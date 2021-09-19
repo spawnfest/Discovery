@@ -5,9 +5,9 @@ defmodule Discovery.Application do
 
   use Application
 
+  alias Discovery.Controller.DeploymentController
   alias Discovery.Deploy.DeployManager
   alias Discovery.Engine.Builder
-  alias Discovery.Controller.DeploymentController
   alias Discovery.Utils
 
   require Logger
@@ -22,7 +22,7 @@ defmodule Discovery.Application do
       DiscoveryWeb.Endpoint,
       {Builder, []},
       {DeploymentController, []},
-      {DeployManager, []},
+      {DeployManager, []}
       # Start a worker by calling: Discovery.Worker.start_link(arg)
       # {Discovery.Worker, arg}
     ]

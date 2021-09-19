@@ -54,7 +54,7 @@ defmodule Discovery.Deploy.DeployUtils do
     if File.exists?("minikube/discovery/namespace.yml") do
       Utils.puts_warn("NAMESPACE DIRECTORY EXISTS")
     else
-      File.mkdir_p!(Path.dirname("minikube/discovery/namespace.yml")) |> IO.inspect(label: "creating namespace")
+      File.mkdir_p!(Path.dirname("minikube/discovery/namespace.yml"))
       namespace_template = File.read!("priv/templates/namespace.yml.eex")
       File.write!("minikube/discovery/namespace.yml", namespace_template)
       Utils.puts_warn("RUNNING NAMESPACE: discovery")

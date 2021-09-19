@@ -17,7 +17,7 @@ defmodule Discovery.Controller.DeploymentController do
     GenServer.call(__MODULE__, {"deployment_data", app_name})
   end
 
-  def get_apps() do
+  def get_apps do
     GenServer.call(__MODULE__, "get_apps")
   end
 
@@ -32,20 +32,21 @@ defmodule Discovery.Controller.DeploymentController do
   end
 
   def handle_call({"deployment_data", app_name}, _from, state) do
-    data = lookup_deployments app_name
+    data = lookup_deployments(app_name)
     {:reply, data, state}
   end
 
   def handle_call({"insert_app", app_name}, _from, state) do
-    data = insert_app_to_bridgedb app_name
+    data = insert_app_to_bridgedb(app_name)
     {:reply, data, state}
   end
 
   def handle_call("get_apps", _from, state) do
     data =
-      Utils.bridge_db
+      Utils.bridge_db()
       |> :ets.tab2list()
       |> Enum.map(fn {app_name, _details} -> app_name end)
+
     {:reply, data, state}
   end
 
@@ -65,8 +66,9 @@ defmodule Discovery.Controller.DeploymentController do
   defp insert_app_to_bridgedb(app_name) do
     case app_name |> lookup_app() do
       nil ->
-        :ets.insert(Utils.bridge_db, {app_name, true})
+        :ets.insert(Utils.bridge_db(), {app_name, true})
         {:ok, :app_inserted}
+
       _ ->
         {:error, :app_present}
     end
@@ -79,9 +81,8 @@ defmodule Discovery.Controller.DeploymentController do
     end
   end
 
-  defp populate_bridgedb() do
-    :ets.tab2list(Utils.metadata_db)
-    |> Enum.each(fn {app_name, _details} -> :ets.insert(Utils.bridge_db, {app_name, true}) end)
+  defp populate_bridgedb do
+    :ets.tab2list(Utils.metadata_db())
+    |> Enum.each(fn {app_name, _details} -> :ets.insert(Utils.bridge_db(), {app_name, true}) end)
   end
-
 end
