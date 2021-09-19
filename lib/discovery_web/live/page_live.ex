@@ -25,10 +25,15 @@ defmodule DiscoveryWeb.PageLive do
       if socket.assigns.modal_input? do
         case app_name |> create_app() do
           {:ok, :app_inserted} ->
+            new_app = %{
+              app_name: app_name,
+              deployments: 0
+            }
+
             socket
             |> assign(
               modal_input?: false,
-              apps: [app_name | socket.assigns.apps],
+              apps: [new_app | socket.assigns.apps],
               create_modal_display: "none"
             )
 
@@ -143,7 +148,8 @@ defmodule DiscoveryWeb.PageLive do
             socket,
             deploy_modal_display: "none",
             deploy_app_warning: "none",
-            selected_app_details: selected_app_details
+            selected_app_details: selected_app_details,
+            apps: get_apps()
           )
 
         {:error, _reason} ->

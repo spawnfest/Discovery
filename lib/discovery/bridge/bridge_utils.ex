@@ -29,6 +29,17 @@ defmodule Discovery.Bridge.BridgeUtils do
   @spec get_apps :: list
   def get_apps do
     DeploymentController.get_apps()
+    |> Enum.map(fn app_name ->
+      deployment_count =
+        app_name
+        |> get_deployment_data()
+        |> Enum.count()
+
+      %{
+        app_name: app_name,
+        deployments: deployment_count
+      }
+    end)
   end
 
   @doc """
