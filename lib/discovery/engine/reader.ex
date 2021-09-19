@@ -3,7 +3,7 @@ defmodule Discovery.Engine.Reader do
   MetadataDB read operations.
   """
 
-  alias Discovery.Engine.Utils
+  alias Discovery.Utils
 
   @doc """
   Returns the correct socket endpoint for given app name.

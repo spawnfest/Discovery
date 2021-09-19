@@ -5,7 +5,7 @@ defmodule Discovery.Engine.Builder do
   """
 
   require Logger
-  alias Discovery.Engine.Utils
+  alias Discovery.Utils
   use GenServer
 
   @type t :: %__MODULE__{
@@ -79,7 +79,7 @@ defmodule Discovery.Engine.Builder do
   defp fetch_deployment_list(state) do
     # V2: namespace should discovery, i guess, as not only games are deployed.
     response =
-      K8s.Client.list("apps/v1", "Deployment", namespace: "games")
+      K8s.Client.list("apps/v1", "Deployment", namespace: "discovery")
       |> then(&K8s.Client.run(state.conn_ref, &1))
 
     case response do
@@ -155,7 +155,7 @@ defmodule Discovery.Engine.Builder do
 
     ingress_response =
       K8s.Client.get("extensions/v1beta1", "ingress",
-        namespace: "games",
+        namespace: "discovery",
         name: app_id
       )
       |> then(&K8s.Client.run(connection, &1))

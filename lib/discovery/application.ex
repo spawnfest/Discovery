@@ -5,9 +5,9 @@ defmodule Discovery.Application do
 
   use Application
 
+  alias Discovery.Deploy.DeployManager
   alias Discovery.Engine.Builder
-  alias Discovery.Engine.Utils
-
+  alias Discovery.Utils
   require Logger
 
   def start(_type, _args) do
@@ -18,6 +18,7 @@ defmodule Discovery.Application do
       {Phoenix.PubSub, name: Discovery.PubSub},
       # Start the Endpoint (http/https)
       DiscoveryWeb.Endpoint,
+      {DeployManager, []},
       {Builder, []}
       # Start a worker by calling: Discovery.Worker.start_link(arg)
       # {Discovery.Worker, arg}

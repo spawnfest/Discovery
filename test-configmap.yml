@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: watchex
-  namespace: discovery
-data:
-  WATCHEX_PORT: "4000"
-  SECRET_KEY_BASE: "a+4ZirM8d7mmz/abBTnQ1yN8TIX4qHqH4s31g43sW6/x9QnDIkLbuh0H7+HNFLYh"
