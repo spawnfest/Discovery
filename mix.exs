@@ -49,7 +49,8 @@ defmodule Discovery.MixProject do
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:uuid, "~> 1.1"},
-      {:k8s, "~> 1.0"}
+      {:k8s, "~> 1.0"},
+      {:cors_plug, "~> 2.0"}
     ]
   end
 
