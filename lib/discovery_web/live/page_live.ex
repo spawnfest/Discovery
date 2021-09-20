@@ -12,6 +12,7 @@ defmodule DiscoveryWeb.PageLive do
        selected_app: nil,
        create_modal_display: "none",
        deploy_modal_display: "none",
+       scale_modal_display: "none",
        create_app_warning: "none",
        deploy_app_warning: "none",
        modal_input?: true,
@@ -52,7 +53,30 @@ defmodule DiscoveryWeb.PageLive do
     if socket.assigns.modal_input? do
       %{
         app_name: socket.assigns.selected_app,
-        app_image: app_image
+        app_image: app_image,
+        replicas: 1
+      }
+      |> create_deployment()
+    end
+
+    socket =
+      socket
+      |> assign(modal_input?: false)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("update-replica", %{"app-replica" => replica_count} = _params, socket) do
+    latest_deployment =
+      socket.assigns.selected_app
+      |> BridgeUtils.get_latest_deployment()
+
+    if socket.assigns.modal_input? do
+      %{
+        app_name: socket.assigns.selected_app,
+        app_image: latest_deployment["image"],
+        replicas: replica_count |> String.to_integer()
       }
       |> create_deployment()
     end
@@ -110,6 +134,22 @@ defmodule DiscoveryWeb.PageLive do
   end
 
   @impl true
+  def handle_event("show-scale-modal", _params, socket) do
+    display =
+      case socket.assigns.scale_modal_display do
+        "none" -> "block"
+        "block" -> "none"
+        _ -> "none"
+      end
+
+    socket =
+      socket
+      |> assign(scale_modal_display: display, modal_input?: true)
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("hide-modal", _params, socket) do
     socket =
       socket
@@ -117,6 +157,7 @@ defmodule DiscoveryWeb.PageLive do
         create_modal_display: "none",
         deploy_modal_display: "none",
         deploy_app_warning: "none",
+        scale_modal_display: "none",
         modal_input?: true
       )
 
@@ -147,6 +188,7 @@ defmodule DiscoveryWeb.PageLive do
           assign(
             socket,
             deploy_modal_display: "none",
+            scale_modal_display: "none",
             deploy_app_warning: "none",
             selected_app_details: selected_app_details,
             apps: get_apps()
@@ -175,7 +217,7 @@ defmodule DiscoveryWeb.PageLive do
     Process.send_after(
       self(),
       {"deployment-created", %{status: deployment_status, app_name: app_name}},
-      2000
+      10_000
     )
   end
 end

@@ -9,7 +9,8 @@ defmodule Discovery.Deploy.DeployUtils do
 
   @type t :: %DeployUtils{
           app_name: String.t(),
-          app_image: String.t()
+          app_image: String.t(),
+          replicas: Integer
         }
 
   @type app :: %{
@@ -20,7 +21,8 @@ defmodule Discovery.Deploy.DeployUtils do
 
   defstruct(
     app_name: "",
-    app_image: ""
+    app_image: "",
+    replicas: 1
   )
 
   @doc """
@@ -35,6 +37,7 @@ defmodule Discovery.Deploy.DeployUtils do
     app_details = %{
       app_name: deployment_details.app_name,
       app_image: deployment_details.app_image,
+      replicas: deployment_details.replicas,
       uid: uid
     }
 
@@ -196,6 +199,7 @@ defmodule Discovery.Deploy.DeployUtils do
       String.replace(deploy_template, "APP_NAME", app.app_name)
       |> String.replace("UID", app.uid)
       |> String.replace("APP_IMAGE", app.app_image)
+      |> String.replace("APP_REPLICA", "#{app.replicas}")
 
     case File.open("minikube/discovery/#{app.app_name}/#{app.app_name}-#{app.uid}/deploy.yml", [
            :write,
